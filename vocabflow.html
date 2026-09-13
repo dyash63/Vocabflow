@@ -62,6 +62,7 @@ button:focus-visible, input:focus-visible {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  gap: 10px;
 }
 .brand {
   font-weight: 800;
@@ -69,7 +70,7 @@ button:focus-visible, input:focus-visible {
   letter-spacing: -0.4px;
 }
 .brand span { color: var(--primary); }
-.top-actions { display: flex; gap: 8px; }
+.top-actions { display: flex; gap: 8px; align-items: center; }
 .iconbtn {
   width: 40px;
   height: 40px;
@@ -83,6 +84,55 @@ button:focus-visible, input:focus-visible {
   transition: background 0.15s, border-color 0.15s;
 }
 .iconbtn:hover { background: var(--primary-soft); border-color: var(--primary); }
+
+.user-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 10px 4px 4px;
+  font-size: 12px;
+  max-width: 160px;
+}
+.user-chip.show { display: flex; }
+.user-chip img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.user-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.auth-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 650;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.auth-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
+.auth-btn.google {
+  background: #fff;
+  color: #333;
+  border-color: #dadce0;
+}
+html.dark .auth-btn.google {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
 
 .hero {
   position: relative;
@@ -191,6 +241,21 @@ button:focus-visible, input:focus-visible {
 }
 .sectionhead h2 { font-size: 19px; margin: 0; }
 .small { color: var(--muted); font-size: 13px; }
+
+.refresh-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 11px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.refresh-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
 
 .cards {
   display: grid;
@@ -465,6 +530,33 @@ html.dark .card.learned .learn {
   text-align: center;
 }
 
+.sync-status {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 8px;
+  min-height: 16px;
+}
+
+.auth-banner {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.auth-banner p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.auth-banner strong { color: var(--ink); }
+
 @media (max-width: 640px) {
   .cards { grid-template-columns: 1fr; }
   .hero h1 { font-size: 26px; }
@@ -472,6 +564,7 @@ html.dark .card.learned .learn {
   .inputrow { flex-direction: column; }
   .inputrow .primary { width: 100%; }
   .word { font-size: 24px; }
+  .user-chip { max-width: 120px; }
 }
 </style>
 </head>
@@ -480,8 +573,20 @@ html.dark .card.learned .learn {
   <div class="top">
     <div class="brand">Vocab<span>Flow</span> ✦</div>
     <div class="top-actions">
+      <div class="user-chip" id="userChip">
+        <img id="userAvatar" alt="" width="28" height="28">
+        <span id="userName"></span>
+      </div>
+      <button class="auth-btn google" id="authBtn" onclick="handleAuth()" type="button">
+        <span id="authBtnLabel">Sign in</span>
+      </button>
       <button class="iconbtn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
     </div>
+  </div>
+
+  <div class="auth-banner" id="authBanner">
+    <p><strong>Sign in with Google</strong> to sync progress across devices and keep it safe.</p>
+    <button class="auth-btn google" type="button" onclick="handleAuth()">Google Sign-in</button>
   </div>
 
   <section class="hero" aria-label="Daily summary">
@@ -512,7 +617,9 @@ html.dark .card.learned .learn {
   <main id="learnView" class="view active" role="tabpanel">
     <div class="sectionhead">
       <h2>Today's 5 words</h2>
-      <span class="small">Tap 🔊 for pronunciation</span>
+      <button class="refresh-btn" type="button" onclick="refreshWords()" title="Load a different set of words for today">
+        ↻ New words
+      </button>
     </div>
     <div class="cards" id="cards"></div>
     <div class="challenge">
@@ -524,7 +631,8 @@ html.dark .card.learned .learn {
       </div>
       <div id="saved" class="saved-box" aria-live="polite"></div>
     </div>
-    <p class="tip">Tip: mark words as learned after you understand the meaning and example.</p>
+    <p class="tip">Already know these? Tap <strong>New words</strong> for a different set today.</p>
+    <p class="sync-status" id="syncStatus"></p>
   </main>
 
   <main id="quizView" class="view" role="tabpanel">
@@ -532,7 +640,49 @@ html.dark .card.learned .learn {
   </main>
 </div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
 <script>
+/* ============================================================
+   1. PASTE YOUR FIREBASE CONFIG HERE
+   ============================================================
+   1. Go to https://console.firebase.google.com
+   2. Create a project → Add a Web app
+   3. Copy the firebaseConfig object and replace the one below
+   4. Enable Authentication → Google sign-in
+   5. Enable Firestore Database (start in test mode, then
+      tighten rules later)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCur_Ua3I5bzE8YBVBIPmGwgtN5vxtfe44",
+  authDomain: "vocabflow-9be0b.firebaseapp.com",
+  projectId: "vocabflow-9be0b",
+  storageBucket: "vocabflow-9be0b.firebasestorage.app",
+  messagingSenderId: "108608746067",
+  appId: "1:108608746067:web:9fc4eacd5a540f36dc0ca6",
+  measurementId: "G-ZDC8PJWKS2"
+};
+
+const FIREBASE_READY = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("PASTE_");
+
+let auth = null;
+let db = null;
+let currentUser = null;
+
+if (FIREBASE_READY) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+  } catch (e) {
+    console.warn("Firebase init failed", e);
+  }
+}
+
+/* ---------- Word sets ---------- */
 const SETS = [
   [
     { w: "Articulate", p: "adjective", m: "Able to express thoughts clearly and effectively.", e: "She is <b>articulate</b> and explains complex ideas simply.", s: "eloquent · expressive" },
@@ -606,6 +756,7 @@ const SETS = [
   ]
 ];
 
+/* ---------- Date helpers ---------- */
 function localISODate(d = new Date()) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -625,31 +776,186 @@ function dayIndex() {
   return Math.floor((nowUTC - startUTC) / 86400000);
 }
 
-function words() {
-  const i = ((dayIndex() % SETS.length) + SETS.length) % SETS.length;
-  return SETS[i];
-}
-
-function done() {
+/* ---------- Storage layer (local + Firebase) ---------- */
+function lsGet(k, fallback) {
   try {
-    return JSON.parse(localStorage.getItem("vf_done_" + key()) || "[]");
+    const v = localStorage.getItem(k);
+    return v === null ? fallback : JSON.parse(v);
   } catch (e) {
-    return [];
+    return fallback;
   }
 }
 
-function saveDone(arr) {
-  localStorage.setItem("vf_done_" + key(), JSON.stringify(arr));
+function lsSet(k, v) {
+  localStorage.setItem(k, JSON.stringify(v));
 }
 
-function getBest() {
-  return +(localStorage.getItem("vf_best") || 0);
+async function cloudGet(path, fallback) {
+  if (!db || !currentUser) return fallback;
+  try {
+    const snap = await db.doc("users/" + currentUser.uid + "/" + path).get();
+    return snap.exists ? snap.data().value : fallback;
+  } catch (e) {
+    console.warn("cloudGet", e);
+    return fallback;
+  }
 }
 
-function setBest(n) {
+async function cloudSet(path, value) {
+  if (!db || !currentUser) return;
+  try {
+    await db.doc("users/" + currentUser.uid + "/" + path).set({
+      value: value,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setSyncStatus("Synced ✓");
+  } catch (e) {
+    console.warn("cloudSet", e);
+    setSyncStatus("Sync failed (using local)");
+  }
+}
+
+function setSyncStatus(msg) {
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = msg || "";
+}
+
+/* High-level data helpers */
+async function getDone() {
+  const local = lsGet("vf_done_" + key(), []);
+  if (currentUser) {
+    const cloud = await cloudGet("days/" + key() + "/done", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function saveDone(arr) {
+  lsSet("vf_done_" + key(), arr);
+  await cloudSet("days/" + key() + "/done", arr);
+}
+
+async function getBest() {
+  const local = +(localStorage.getItem("vf_best") || 0);
+  if (currentUser) {
+    const cloud = await cloudGet("meta/best", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function setBest(n) {
   localStorage.setItem("vf_best", String(n));
+  await cloudSet("meta/best", n);
 }
 
+async function getSentence() {
+  const local = localStorage.getItem("vf_sentence_" + key()) || "";
+  if (currentUser) {
+    const cloud = await cloudGet("days/" + key() + "/sentence", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function saveSentenceCloud(v) {
+  localStorage.setItem("vf_sentence_" + key(), v);
+  await cloudSet("days/" + key() + "/sentence", v);
+}
+
+async function getSetOffset() {
+  const local = lsGet("vf_offset_" + key(), 0);
+  if (currentUser) {
+    const cloud = await cloudGet("days/" + key() + "/offset", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function saveSetOffset(n) {
+  lsSet("vf_offset_" + key(), n);
+  await cloudSet("days/" + key() + "/offset", n);
+}
+
+async function words() {
+  const base = ((dayIndex() % SETS.length) + SETS.length) % SETS.length;
+  const offset = await getSetOffset();
+  const i = (base + offset) % SETS.length;
+  return SETS[i];
+}
+
+/* ---------- Auth ---------- */
+function updateAuthUI() {
+  const banner = document.getElementById("authBanner");
+  const chip = document.getElementById("userChip");
+  const btn = document.getElementById("authBtn");
+  const label = document.getElementById("authBtnLabel");
+
+  if (!FIREBASE_READY) {
+    banner.style.display = "none";
+    btn.style.display = "none";
+    return;
+  }
+
+  if (currentUser) {
+    banner.style.display = "none";
+    chip.classList.add("show");
+    document.getElementById("userAvatar").src = currentUser.photoURL || "";
+    document.getElementById("userName").textContent = currentUser.displayName || currentUser.email || "User";
+    label.textContent = "Sign out";
+    btn.classList.remove("google");
+  } else {
+    banner.style.display = "flex";
+    chip.classList.remove("show");
+    label.textContent = "Sign in";
+    btn.classList.add("google");
+  }
+}
+
+async function handleAuth() {
+  if (!auth) {
+    alert("Firebase is not configured yet.\n\nPaste your firebaseConfig in the code (see instructions at the top of the script).");
+    return;
+  }
+  if (currentUser) {
+    await auth.signOut();
+    return;
+  }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await auth.signInWithPopup(provider);
+  } catch (e) {
+    // Fallback for mobile / popup blocked
+    try {
+      await auth.signInWithRedirect(provider);
+    } catch (e2) {
+      alert("Sign-in failed: " + (e2.message || e.message));
+    }
+  }
+}
+
+if (auth) {
+  auth.onAuthStateChanged(async (user) => {
+    currentUser = user;
+    updateAuthUI();
+    if (user) {
+      setSyncStatus("Syncing…");
+      // Merge any local progress into cloud on first login of the day
+      const localDone = lsGet("vf_done_" + key(), []);
+      if (localDone.length) {
+        const cloudDone = await cloudGet("days/" + key() + "/done", null);
+        if (cloudDone === null) await cloudSet("days/" + key() + "/done", localDone);
+      }
+      await render();
+      setSyncStatus("Synced ✓");
+    } else {
+      setSyncStatus("");
+      await render();
+    }
+  });
+}
+
+/* ---------- Theme ---------- */
 function applyTheme(dark) {
   document.documentElement.classList.toggle("dark", dark);
   const btn = document.getElementById("themeBtn");
@@ -670,6 +976,7 @@ function toggleTheme() {
   applyTheme(saved === "dark" || (!saved && prefersDark));
 })();
 
+/* ---------- Core render ---------- */
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, "&amp;")
@@ -682,10 +989,11 @@ function escapeAttr(s) {
   return String(s).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
-function render() {
-  const d = done();
-  const ws = words();
+async function render() {
+  const d = await getDone();
+  const ws = await words();
   const pct = Math.round((d.length / 5) * 100);
+  const best = await getBest();
 
   document.getElementById("date").textContent = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -697,7 +1005,7 @@ function render() {
   document.getElementById("pct").textContent = pct + "%";
   document.getElementById("bar").style.width = pct + "%";
   document.getElementById("progressBar").setAttribute("aria-valuenow", pct);
-  document.getElementById("best").textContent = getBest();
+  document.getElementById("best").textContent = best;
 
   document.getElementById("cards").innerHTML = ws
     .map(function (x, i) {
@@ -719,7 +1027,7 @@ function render() {
     })
     .join("");
 
-  const saved = localStorage.getItem("vf_sentence_" + key());
+  const saved = await getSentence();
   const box = document.getElementById("saved");
   if (saved) {
     box.classList.add("show");
@@ -729,14 +1037,14 @@ function render() {
     box.textContent = "";
   }
 
-  renderStreak();
+  await renderStreak();
 }
 
-function toggleDone(i) {
-  let d = done();
+async function toggleDone(i) {
+  let d = await getDone();
   d = d.includes(i) ? d.filter(function (v) { return v !== i; }) : d.concat([i]).sort(function (a, b) { return a - b; });
-  saveDone(d);
-  render();
+  await saveDone(d);
+  await render();
 }
 
 function speak(t) {
@@ -748,16 +1056,26 @@ function speak(t) {
   speechSynthesis.speak(u);
 }
 
-function saveSentence() {
+async function saveSentence() {
   const input = document.getElementById("sentence");
   const v = input.value.trim();
   if (!v) {
     input.focus();
     return;
   }
-  localStorage.setItem("vf_sentence_" + key(), v);
+  await saveSentenceCloud(v);
   input.value = "";
-  render();
+  await render();
+}
+
+async function refreshWords() {
+  const current = await getSetOffset();
+  const next = (current + 1) % SETS.length;
+  await saveSetOffset(next);
+  // Reset today's learned marks when switching sets
+  await saveDone([]);
+  await render();
+  setSyncStatus("Loaded a new set of words");
 }
 
 function switchView(v) {
@@ -773,20 +1091,22 @@ function switchView(v) {
   if (v === "quiz") startQuiz();
 }
 
-function renderStreak() {
+async function renderStreak() {
   let n = 0;
   const d = new Date();
   let check = new Date(d);
-  const todayDone = done().length >= 5;
+  const todayDone = (await getDone()).length >= 5;
   if (!todayDone) {
     check.setDate(check.getDate() - 1);
   }
+  // For cloud users we only look at local cache + today's cloud for speed
+  // Full historical cloud streak would need more reads; this is a practical compromise
   while (true) {
     const k = localISODate(check);
-    let x = [];
-    try {
-      x = JSON.parse(localStorage.getItem("vf_done_" + k) || "[]");
-    } catch (e) {}
+    let x = lsGet("vf_done_" + k, []);
+    if (currentUser && k === key()) {
+      x = await getDone();
+    }
     if (x.length < 5) break;
     n++;
     check.setDate(check.getDate() - 1);
@@ -795,6 +1115,7 @@ function renderStreak() {
   document.getElementById("streak").textContent = n;
 }
 
+/* ---------- Quiz ---------- */
 let quizState = null;
 
 function shuffle(arr) {
@@ -808,23 +1129,23 @@ function shuffle(arr) {
   return a;
 }
 
-function startQuiz() {
+async function startQuiz() {
   const order = shuffle([0, 1, 2, 3, 4]);
   quizState = { q: 0, score: 0, order: order, answers: [] };
-  renderQuizQ();
+  await renderQuizQ();
 }
 
-function renderQuizQ() {
+async function renderQuizQ() {
   const box = document.getElementById("quizBox");
   const q = quizState.q;
   const score = quizState.score;
   const order = quizState.order;
   const answers = quizState.answers;
-  const ws = words();
+  const ws = await words();
 
   if (q >= 5) {
-    const best = Math.max(score, getBest());
-    setBest(best);
+    const best = Math.max(score, await getBest());
+    await setBest(best);
     const msg = score === 5 ? "Perfect! 🎉" : score >= 3 ? "Great work! 💪" : "Keep practicing! 📚";
     box.innerHTML =
       '<div class="result">' +
@@ -839,7 +1160,7 @@ function renderQuizQ() {
       '<button class="primary" type="button" onclick="startQuiz()">Retake quiz</button>' +
       '<button class="btn-ghost" type="button" onclick="switchView(\'learn\')">Back to words</button>' +
       "</div></div>";
-    render();
+    await render();
     return;
   }
 
@@ -924,6 +1245,7 @@ document.getElementById("sentence").addEventListener("keydown", function (e) {
   if (e.key === "Enter") saveSentence();
 });
 
+updateAuthUI();
 render();
 </script>
 </body>
