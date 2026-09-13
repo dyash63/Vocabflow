@@ -344,22 +344,24 @@ html.dark .card.learned { border-color: #2d6a4f; }
   width: 100%;
   border: 0;
   border-radius: 11px;
-  background: var(--ink);
+  background: var(--primary);
   color: #fff;
-  padding: 10px;
+  padding: 11px;
   margin-top: 13px;
   font-weight: 700;
-  font-size: 13px;
-  transition: background 0.15s, color 0.15s;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
 }
+.learn:hover { opacity: 0.92; }
 .card.learned .learn {
   background: var(--green-soft);
   color: var(--green);
-  border: 1px solid transparent;
+  border: 1px solid var(--green);
 }
 html.dark .card.learned .learn {
   background: #0f2e24;
-  color: var(--green);
+  color: #34d399;
+  border-color: #2d6a4f;
 }
 
 .challenge {
@@ -539,23 +541,35 @@ html.dark .card.learned .learn {
 }
 
 .auth-banner {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: linear-gradient(135deg, var(--primary-soft), var(--surface));
+  border: 1px solid var(--primary);
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   margin-bottom: 14px;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
+  box-shadow: 0 4px 16px rgba(91, 82, 240, 0.12);
 }
+.auth-banner.show { display: flex; }
 .auth-banner p {
   margin: 0;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 14px;
+  color: var(--ink);
+  flex: 1;
+  min-width: 180px;
 }
-.auth-banner strong { color: var(--ink); }
+.auth-banner strong { color: var(--primary); }
+.auth-banner .auth-btn {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  font-weight: 700;
+  padding: 10px 16px;
+}
+.auth-banner .auth-btn:hover { opacity: 0.92; }
 
 @media (max-width: 640px) {
   .cards { grid-template-columns: 1fr; }
@@ -892,29 +906,34 @@ function updateAuthUI() {
   const label = document.getElementById("authBtnLabel");
 
   if (!FIREBASE_READY) {
-    banner.style.display = "none";
+    banner.classList.remove("show");
     btn.style.display = "none";
     return;
   }
 
   if (currentUser) {
-    banner.style.display = "none";
+    banner.classList.remove("show");
     chip.classList.add("show");
     document.getElementById("userAvatar").src = currentUser.photoURL || "";
     document.getElementById("userName").textContent = currentUser.displayName || currentUser.email || "User";
     label.textContent = "Sign out";
     btn.classList.remove("google");
   } else {
-    banner.style.display = "flex";
+    banner.classList.add("show");
     chip.classList.remove("show");
     label.textContent = "Sign in";
     btn.classList.add("google");
   }
 }
 
+function isMobile() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+}
+
 async function handleAuth() {
   if (!auth) {
-    alert("Firebase is not configured yet.\n\nPaste your firebaseConfig in the code (see instructions at the top of the script).");
+    alert("Firebase is not configured yet.");
     return;
   }
   if (currentUser) {
@@ -922,10 +941,15 @@ async function handleAuth() {
     return;
   }
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
   try {
-    await auth.signInWithPopup(provider);
+    // On mobile (especially iPhone Safari) popup is often blocked — use redirect
+    if (isMobile()) {
+      await auth.signInWithRedirect(provider);
+    } else {
+      await auth.signInWithPopup(provider);
+    }
   } catch (e) {
-    // Fallback for mobile / popup blocked
     try {
       await auth.signInWithRedirect(provider);
     } catch (e2) {
@@ -935,12 +959,20 @@ async function handleAuth() {
 }
 
 if (auth) {
+  // Complete redirect-based login when returning from Google
+  auth.getRedirectResult().then(function (result) {
+    if (result && result.user) {
+      setSyncStatus("Signed in ✓");
+    }
+  }).catch(function (e) {
+    console.warn("Redirect sign-in error", e);
+  });
+
   auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     updateAuthUI();
     if (user) {
       setSyncStatus("Syncing…");
-      // Merge any local progress into cloud on first login of the day
       const localDone = lsGet("vf_done_" + key(), []);
       if (localDone.length) {
         const cloudDone = await cloudGet("days/" + key() + "/done", null);
@@ -951,6 +983,16 @@ if (auth) {
     } else {
       setSyncStatus("");
       await render();
+      // Auto-prompt login once per browser session when not signed in
+      try {
+        if (!sessionStorage.getItem("vf_login_prompted")) {
+          sessionStorage.setItem("vf_login_prompted", "1");
+          // Small delay so the banner is visible first, then open Google
+          setTimeout(function () {
+            if (!currentUser) handleAuth();
+          }, 600);
+        }
+      } catch (e) {}
     }
   });
 }
