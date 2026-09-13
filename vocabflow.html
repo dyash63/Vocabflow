@@ -601,9 +601,12 @@ html.dark .card.learned .learn {
   <div class="auth-banner" id="authBanner">
     <div>
       <p><strong>Welcome to VocabFlow</strong></p>
-      <p style="margin-top:6px;font-size:13px;opacity:.9">Learn 5 words a day, track your streak, and save progress. Sign in with Google so your learning stays with you on any device.</p>
+      <p style="margin-top:6px;font-size:13px;opacity:.9">Learn 5 words a day with quizzes. Progress is saved on this phone automatically. Google sign-in is optional (works best on a computer) if you want cloud backup.</p>
     </div>
-    <button class="auth-btn google" type="button" onclick="handleAuth()">Continue with Google</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="auth-btn google" type="button" onclick="handleAuth()">Continue with Google</button>
+      <button class="auth-btn" type="button" onclick="dismissAuthBanner()" style="opacity:.85">Not now</button>
+    </div>
   </div>
 
   <section class="hero" aria-label="Daily summary">
@@ -904,6 +907,11 @@ async function words() {
 }
 
 /* ---------- Auth ---------- */
+function dismissAuthBanner() {
+  try { localStorage.setItem("vf_banner_dismissed", "1"); } catch (e) {}
+  document.getElementById("authBanner").classList.remove("show");
+}
+
 function updateAuthUI() {
   const banner = document.getElementById("authBanner");
   const chip = document.getElementById("userChip");
@@ -932,10 +940,14 @@ function updateAuthUI() {
     btn.classList.remove("google");
     setSyncStatus("Signed in · progress syncs to your account");
   } else {
-    banner.classList.add("show");
     chip.classList.remove("show");
     label.textContent = "Sign in";
     btn.classList.add("google");
+    // Show banner only if user hasn't dismissed it
+    let dismissed = false;
+    try { dismissed = localStorage.getItem("vf_banner_dismissed") === "1"; } catch (e) {}
+    if (dismissed) banner.classList.remove("show");
+    else banner.classList.add("show");
   }
 }
 
@@ -965,35 +977,38 @@ async function handleAuth() {
   provider.addScope("email");
   provider.setCustomParameters({ prompt: "select_account" });
 
+  // iPhone Safari + GitHub Pages: redirect sign-in often fails (storage blocked).
+  // Always try popup first. Allow the popup if Safari asks.
   try {
-    // Prefer popup on desktop; redirect works more reliably on iPhone Safari
-    if (isMobile()) {
-      // Mark that we are in a redirect flow so we can show a message on return
-      try { sessionStorage.setItem("vf_auth_pending", "1"); } catch (e) {}
-      await auth.signInWithRedirect(provider);
-    } else {
-      const result = await auth.signInWithPopup(provider);
-      if (result && result.user) {
-        setSyncStatus("Signed in ✓");
-      }
+    const result = await auth.signInWithPopup(provider);
+    if (result && result.user) {
+      currentUser = result.user;
+      updateAuthUI();
+      setSyncStatus("Signed in ✓");
+      await render();
     }
   } catch (e) {
     console.warn("Auth error", e);
-    // If popup blocked, fall back to redirect
-    if (e && (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user")) {
-      try {
-        sessionStorage.setItem("vf_auth_pending", "1");
-        await auth.signInWithRedirect(provider);
-        return;
-      } catch (e2) {
-        setSyncStatus("");
-        alert("Sign-in failed: " + (e2.message || e.message));
-        return;
-      }
-    }
     setSyncStatus("");
-    if (e.code !== "auth/popup-closed-by-user") {
-      alert("Sign-in failed: " + (e.message || e.code || "unknown error"));
+    if (e.code === "auth/popup-closed-by-user") {
+      setSyncStatus("Sign-in cancelled");
+      return;
+    }
+    if (e.code === "auth/popup-blocked") {
+      alert(
+        "Safari blocked the sign-in window.\n\n" +
+        "On iPhone: Settings → Safari → turn OFF \"Block Pop-ups\", then try again.\n\n" +
+        "Or open this site on a computer — sign-in works more reliably there."
+      );
+      return;
+    }
+    // Last resort redirect (often broken on iOS + GitHub Pages)
+    try {
+      sessionStorage.setItem("vf_auth_pending", "1");
+      setSyncStatus("Trying full-page sign-in…");
+      await auth.signInWithRedirect(provider);
+    } catch (e2) {
+      alert("Sign-in failed: " + (e2.message || e.message || e.code));
     }
   }
 }
