@@ -599,8 +599,11 @@ html.dark .card.learned .learn {
   </div>
 
   <div class="auth-banner" id="authBanner">
-    <p><strong>Sign in with Google</strong> to sync progress across devices and keep it safe.</p>
-    <button class="auth-btn google" type="button" onclick="handleAuth()">Google Sign-in</button>
+    <div>
+      <p><strong>Welcome to VocabFlow</strong></p>
+      <p style="margin-top:6px;font-size:13px;opacity:.9">Learn 5 words a day, track your streak, and save progress. Sign in with Google so your learning stays with you on any device.</p>
+    </div>
+    <button class="auth-btn google" type="button" onclick="handleAuth()">Continue with Google</button>
   </div>
 
   <section class="hero" aria-label="Daily summary">
@@ -690,6 +693,8 @@ if (FIREBASE_READY) {
   try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
+    // Keep session across reloads / redirect back from Google
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     db = firebase.firestore();
   } catch (e) {
     console.warn("Firebase init failed", e);
@@ -914,10 +919,18 @@ function updateAuthUI() {
   if (currentUser) {
     banner.classList.remove("show");
     chip.classList.add("show");
-    document.getElementById("userAvatar").src = currentUser.photoURL || "";
-    document.getElementById("userName").textContent = currentUser.displayName || currentUser.email || "User";
+    const avatar = document.getElementById("userAvatar");
+    if (currentUser.photoURL) {
+      avatar.src = currentUser.photoURL;
+      avatar.style.display = "block";
+    } else {
+      avatar.style.display = "none";
+    }
+    document.getElementById("userName").textContent =
+      currentUser.displayName || currentUser.email || "Signed in";
     label.textContent = "Sign out";
     btn.classList.remove("google");
+    setSyncStatus("Signed in · progress syncs to your account");
   } else {
     banner.classList.add("show");
     chip.classList.remove("show");
@@ -937,65 +950,104 @@ async function handleAuth() {
     return;
   }
   if (currentUser) {
-    await auth.signOut();
+    try {
+      await auth.signOut();
+      setSyncStatus("");
+    } catch (e) {
+      alert("Sign out failed: " + e.message);
+    }
     return;
   }
+
+  setSyncStatus("Opening Google…");
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.addScope("profile");
+  provider.addScope("email");
   provider.setCustomParameters({ prompt: "select_account" });
+
   try {
-    // On mobile (especially iPhone Safari) popup is often blocked — use redirect
+    // Prefer popup on desktop; redirect works more reliably on iPhone Safari
     if (isMobile()) {
+      // Mark that we are in a redirect flow so we can show a message on return
+      try { sessionStorage.setItem("vf_auth_pending", "1"); } catch (e) {}
       await auth.signInWithRedirect(provider);
     } else {
-      await auth.signInWithPopup(provider);
+      const result = await auth.signInWithPopup(provider);
+      if (result && result.user) {
+        setSyncStatus("Signed in ✓");
+      }
     }
   } catch (e) {
-    try {
-      await auth.signInWithRedirect(provider);
-    } catch (e2) {
-      alert("Sign-in failed: " + (e2.message || e.message));
+    console.warn("Auth error", e);
+    // If popup blocked, fall back to redirect
+    if (e && (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user")) {
+      try {
+        sessionStorage.setItem("vf_auth_pending", "1");
+        await auth.signInWithRedirect(provider);
+        return;
+      } catch (e2) {
+        setSyncStatus("");
+        alert("Sign-in failed: " + (e2.message || e.message));
+        return;
+      }
+    }
+    setSyncStatus("");
+    if (e.code !== "auth/popup-closed-by-user") {
+      alert("Sign-in failed: " + (e.message || e.code || "unknown error"));
     }
   }
 }
 
-if (auth) {
-  // Complete redirect-based login when returning from Google
-  auth.getRedirectResult().then(function (result) {
+async function finishAuthLoad() {
+  if (!auth) {
+    updateAuthUI();
+    await render();
+    return;
+  }
+
+  // Important: process redirect result BEFORE relying on currentUser
+  try {
+    const pending = sessionStorage.getItem("vf_auth_pending");
+    if (pending) setSyncStatus("Finishing sign-in…");
+    const result = await auth.getRedirectResult();
+    try { sessionStorage.removeItem("vf_auth_pending"); } catch (e) {}
     if (result && result.user) {
+      currentUser = result.user;
       setSyncStatus("Signed in ✓");
     }
-  }).catch(function (e) {
-    console.warn("Redirect sign-in error", e);
-  });
+  } catch (e) {
+    console.warn("Redirect result error", e);
+    try { sessionStorage.removeItem("vf_auth_pending"); } catch (err) {}
+    if (e && e.code && e.code !== "auth/redirect-cancelled-by-user") {
+      setSyncStatus("Sign-in error — try again");
+      console.error(e);
+    }
+  }
 
   auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     updateAuthUI();
     if (user) {
       setSyncStatus("Syncing…");
-      const localDone = lsGet("vf_done_" + key(), []);
-      if (localDone.length) {
-        const cloudDone = await cloudGet("days/" + key() + "/done", null);
-        if (cloudDone === null) await cloudSet("days/" + key() + "/done", localDone);
+      try {
+        const localDone = lsGet("vf_done_" + key(), []);
+        if (localDone.length) {
+          const cloudDone = await cloudGet("days/" + key() + "/done", null);
+          if (cloudDone === null) await cloudSet("days/" + key() + "/done", localDone);
+        }
+      } catch (e) {
+        console.warn("merge local failed", e);
       }
       await render();
       setSyncStatus("Synced ✓");
     } else {
       setSyncStatus("");
       await render();
-      // Auto-prompt login once per browser session when not signed in
-      try {
-        if (!sessionStorage.getItem("vf_login_prompted")) {
-          sessionStorage.setItem("vf_login_prompted", "1");
-          // Small delay so the banner is visible first, then open Google
-          setTimeout(function () {
-            if (!currentUser) handleAuth();
-          }, 600);
-        }
-      } catch (e) {}
     }
   });
 }
+
+finishAuthLoad();
 
 /* ---------- Theme ---------- */
 function applyTheme(dark) {
@@ -1287,8 +1339,12 @@ document.getElementById("sentence").addEventListener("keydown", function (e) {
   if (e.key === "Enter") saveSentence();
 });
 
-updateAuthUI();
-render();
+// Auth + first render are started by finishAuthLoad() above.
+// Fallback if Firebase is not configured:
+if (!auth) {
+  updateAuthUI();
+  render();
+}
 </script>
 </body>
 </html>
