@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#635bff">
+<meta name="description" content="Learn 5 high-value English words every day with quizzes and spaced practice.">
+<title>VocabFlow — 5 Words a Day</title>
+<style>
+:root {
+  --bg: #f4f5f9;
+  --surface: #ffffff;
+  --ink: #171a2b;
+  --muted: #6b7289;
+  --line: #e6e8ef;
+  --primary: #5b52f0;
+  --primary-soft: #eeedff;
+  --green: #0f9f6e;
+  --green-soft: #e6f7f0;
+  --red: #d32f2f;
+  --red-soft: #fff0f0;
+  --shadow: 0 10px 32px rgba(30, 25, 80, 0.08);
+  --radius: 20px;
+  --hero-from: #4f46e5;
+  --hero-to: #8b5cf6;
+}
+html.dark {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --ink: #f0f1f5;
+  --muted: #9aa0b5;
+  --line: #2a2e3c;
+  --primary: #8b83ff;
+  --primary-soft: #2a2750;
+  --green: #34d399;
+  --green-soft: #0f2e24;
+  --red: #f87171;
+  --red-soft: #3a1a1a;
+  --shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  --hero-from: #4338ca;
+  --hero-to: #7c3aed;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s, color 0.25s;
+}
+button { font: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.app { max-width: 960px; margin: 0 auto; padding: 16px 14px 56px; }
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+.brand {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.4px;
+}
+.brand span { color: var(--primary); }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+.iconbtn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.iconbtn:hover { background: var(--primary-soft); border-color: var(--primary); }
+
+.user-chip {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 10px 4px 4px;
+  font-size: 12px;
+  max-width: 160px;
+}
+.user-chip.show { display: flex; }
+.user-chip img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.user-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.auth-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 650;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.auth-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
+.auth-btn.google {
+  background: #fff;
+  color: #333;
+  border-color: #dadce0;
+}
+html.dark .auth-btn.google {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 26px 24px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  box-shadow: var(--shadow);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  right: -50px;
+  top: -55px;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+.kicker {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  opacity: 0.85;
+}
+.hero h1 {
+  font-size: 30px;
+  line-height: 1.12;
+  margin: 6px 0 6px;
+  letter-spacing: -0.9px;
+  font-weight: 800;
+}
+.hero p { margin: 0; opacity: 0.92; font-size: 14px; }
+.stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.pill {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: 8px 11px;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
+}
+.pill b { font-size: 15px; margin-right: 3px; }
+.progresswrap { margin-top: 16px; }
+.progressline {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.9;
+  margin-bottom: 6px;
+}
+.progress {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  width: 0;
+  background: #fff;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--line);
+  padding: 4px;
+  border-radius: 14px;
+  margin: 16px 0;
+}
+.tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 10px;
+  border-radius: 11px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.tab.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sectionhead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 2px 12px;
+  flex-wrap: wrap;
+}
+.sectionhead h2 { font-size: 19px; margin: 0; }
+.small { color: var(--muted); font-size: 13px; }
+
+.refresh-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 11px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.refresh-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.card:hover { transform: translateY(-1px); }
+.card.learned {
+  border-color: #7dd3b0;
+  background: var(--green-soft);
+}
+html.dark .card.learned { border-color: #2d6a4f; }
+.num {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+.check {
+  color: var(--green);
+  font-size: 18px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.learned .check { opacity: 1; }
+.wordrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+.word {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+.sound {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s;
+}
+.sound:hover { transform: scale(1.08); }
+.pos {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+.meaning {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 11px 0;
+}
+.example {
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--bg);
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+.example b { color: var(--primary); }
+.syn {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.learn {
+  width: 100%;
+  border: 0;
+  border-radius: 11px;
+  background: var(--primary);
+  color: #fff;
+  padding: 11px;
+  margin-top: 13px;
+  font-weight: 700;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+.learn:hover { opacity: 0.92; }
+.card.learned .learn {
+  background: var(--green-soft);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+html.dark .card.learned .learn {
+  background: #0f2e24;
+  color: #34d399;
+  border-color: #2d6a4f;
+}
+
+.challenge {
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.challenge h3 { margin: 0 0 6px; font-size: 16px; }
+.challenge p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.inputrow { display: flex; gap: 8px; }
+.inputrow input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 11px 12px;
+  outline: none;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+.inputrow input:focus { border-color: var(--primary); }
+.primary {
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 11px;
+  padding: 11px 15px;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.primary:hover { opacity: 0.92; }
+.primary:active { transform: scale(0.98); }
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.saved-box {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  display: none;
+}
+.saved-box.show { display: block; }
+.saved-box strong { color: var(--ink); }
+
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.22s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.quizbox {
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  min-height: 280px;
+}
+.qmeta {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.question {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 10px 0 18px;
+}
+.options { display: grid; gap: 8px; }
+.option {
+  border: 1px solid var(--line);
+  background: var(--bg);
+  text-align: left;
+  padding: 13px 14px;
+  border-radius: 12px;
+  font-weight: 650;
+  font-size: 15px;
+  color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+.option:hover:not(:disabled) { border-color: var(--primary); }
+.option:disabled { cursor: default; }
+.option.correct {
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green);
+}
+.option.wrong {
+  background: var(--red-soft);
+  border-color: var(--red);
+  color: var(--red);
+}
+.next {
+  margin-top: 14px;
+  width: 100%;
+  display: none;
+}
+.feedback {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 1.2em;
+}
+.feedback strong { color: var(--ink); }
+.result { text-align: center; padding: 12px 0; }
+.result .big {
+  font-size: 48px;
+  font-weight: 850;
+  letter-spacing: -1px;
+  margin: 8px 0;
+}
+.result h2 { margin: 0 0 6px; font-size: 22px; }
+.review {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 16px 0 8px;
+}
+.dot {
+  height: 7px;
+  border-radius: 8px;
+  background: var(--line);
+  transition: background 0.2s;
+}
+.dot.ok { background: var(--green); }
+.dot.bad { background: var(--red); }
+.result-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.result-actions .primary { min-width: 140px; }
+.btn-ghost {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 11px;
+  padding: 11px 15px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tip {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.sync-status {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 8px;
+  min-height: 16px;
+}
+
+.auth-banner {
+  background: linear-gradient(135deg, var(--primary-soft), var(--surface));
+  border: 1px solid var(--primary);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 16px rgba(91, 82, 240, 0.12);
+}
+.auth-banner.show { display: flex; }
+.auth-banner p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+  flex: 1;
+  min-width: 180px;
+}
+.auth-banner strong { color: var(--primary); }
+.auth-banner .auth-btn {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  font-weight: 700;
+  padding: 10px 16px;
+}
+.auth-banner .auth-btn:hover { opacity: 0.92; }
+
+@media (max-width: 640px) {
+  .cards { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 26px; }
+  .question { font-size: 19px; }
+  .inputrow { flex-direction: column; }
+  .inputrow .primary { width: 100%; }
+  .word { font-size: 24px; }
+  .user-chip { max-width: 120px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">Vocab<span>Flow</span> ✦</div>
+    <div class="top-actions">
+      <div class="user-chip" id="userChip">
+        <img id="userAvatar" alt="" width="28" height="28">
+        <span id="userName"></span>
+      </div>
+      <button class="auth-btn google" id="authBtn" onclick="handleAuth()" type="button">
+        <span id="authBtnLabel">Sign in</span>
+      </button>
+      <button class="iconbtn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">☾</button>
+    </div>
+  </div>
+
+  <div class="auth-banner" id="authBanner">
+    <div>
+      <p><strong>Welcome to VocabFlow</strong></p>
+      <p style="margin-top:6px;font-size:13px;opacity:.9">Learn 5 words a day, track your streak, and save progress. Sign in with Google so your learning stays with you on any device.</p>
+    </div>
+    <button class="auth-btn google" type="button" onclick="handleAuth()">Continue with Google</button>
+  </div>
+
+  <section class="hero" aria-label="Daily summary">
+    <div class="kicker">Daily vocabulary</div>
+    <h1>5 words. 10 minutes.<br>A stronger vocabulary.</h1>
+    <p id="date"></p>
+    <div class="stats">
+      <div class="pill">🔥 <b id="streak">0</b> day streak</div>
+      <div class="pill">✓ <b id="learnedCount">0</b>/5 learned</div>
+      <div class="pill">🏆 <b id="best">0</b> best quiz</div>
+    </div>
+    <div class="progresswrap">
+      <div class="progressline">
+        <span>Today's progress</span>
+        <span id="pct">0%</span>
+      </div>
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+        <div class="bar" id="bar"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" role="tab" id="learnTab" aria-selected="true" onclick="switchView('learn')">Learn</button>
+    <button class="tab" role="tab" id="quizTab" aria-selected="false" onclick="switchView('quiz')">Quiz</button>
+  </div>
+
+  <main id="learnView" class="view active" role="tabpanel">
+    <div class="sectionhead">
+      <h2>Today's 5 words</h2>
+      <button class="refresh-btn" type="button" onclick="refreshWords()" title="Load a different set of words for today">
+        ↻ New words
+      </button>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="challenge">
+      <h3>✍️ Use a word today</h3>
+      <p>Write one original sentence with any of today's words. Production strengthens memory.</p>
+      <div class="inputrow">
+        <input id="sentence" type="text" maxlength="280" placeholder="e.g. I kept the update concise and focused…" aria-label="Your sentence">
+        <button class="primary" id="saveBtn" onclick="saveSentence()">Save</button>
+      </div>
+      <div id="saved" class="saved-box" aria-live="polite"></div>
+    </div>
+    <p class="tip">Already know these? Tap <strong>New words</strong> for a different set today.</p>
+    <p class="sync-status" id="syncStatus"></p>
+  </main>
+
+  <main id="quizView" class="view" role="tabpanel">
+    <div id="quizBox" class="quizbox" aria-live="polite"></div>
+  </main>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   1. PASTE YOUR FIREBASE CONFIG HERE
+   ============================================================
+   1. Go to https://console.firebase.google.com
+   2. Create a project → Add a Web app
+   3. Copy the firebaseConfig object and replace the one below
+   4. Enable Authentication → Google sign-in
+   5. Enable Firestore Database (start in test mode, then
+      tighten rules later)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCur_Ua3I5bzE8YBVBIPmGwgtN5vxtfe44",
+  authDomain: "vocabflow-9be0b.firebaseapp.com",
+  projectId: "vocabflow-9be0b",
+  storageBucket: "vocabflow-9be0b.firebasestorage.app",
+  messagingSenderId: "108608746067",
+  appId: "1:108608746067:web:9fc4eacd5a540f36dc0ca6",
+  measurementId: "G-ZDC8PJWKS2"
+};
+
+const FIREBASE_READY = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("PASTE_");
+
+let auth = null;
+let db = null;
+let currentUser = null;
+
+if (FIREBASE_READY) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    // Keep session across reloads / redirect back from Google
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    db = firebase.firestore();
+  } catch (e) {
+    console.warn("Firebase init failed", e);
+  }
+}
+
+/* ---------- Word sets ---------- */
+const SETS = [
+  [
+    { w: "Articulate", p: "adjective", m: "Able to express thoughts clearly and effectively.", e: "She is <b>articulate</b> and explains complex ideas simply.", s: "eloquent · expressive" },
+    { w: "Pragmatic", p: "adjective", m: "Practical and focused on what will work in reality.", e: "We need a <b>pragmatic</b> solution we can implement this week.", s: "practical · realistic" },
+    { w: "Meticulous", p: "adjective", m: "Very careful and precise about details.", e: "He is <b>meticulous</b> when reviewing code before a release.", s: "careful · thorough" },
+    { w: "Resilient", p: "adjective", m: "Able to recover quickly from difficulty or setbacks.", e: "She stayed <b>resilient</b> after several setbacks at work.", s: "strong · adaptable" },
+    { w: "Ambiguous", p: "adjective", m: "Open to more than one interpretation; unclear.", e: "The email was <b>ambiguous</b>, so I asked for clarification.", s: "unclear · vague" }
+  ],
+  [
+    { w: "Concise", p: "adjective", m: "Brief but clear and complete.", e: "Please keep the status update <b>concise</b> and focused.", s: "brief · succinct" },
+    { w: "Diligent", p: "adjective", m: "Showing steady, careful effort in your work.", e: "His <b>diligent</b> preparation helped the project finish on time.", s: "hardworking · industrious" },
+    { w: "Inevitable", p: "adjective", m: "Certain to happen and impossible to avoid.", e: "With the old system, some delays were <b>inevitable</b>.", s: "unavoidable · certain" },
+    { w: "Subtle", p: "adjective", m: "Not obvious; delicate or difficult to notice.", e: "There was a <b>subtle</b> change in her tone during the meeting.", s: "slight · understated" },
+    { w: "Versatile", p: "adjective", m: "Able to adapt to many different uses or situations.", e: "This <b>versatile</b> tool works for analysis and automation.", s: "adaptable · flexible" }
+  ],
+  [
+    { w: "Coherent", p: "adjective", m: "Logical, consistent, and easy to understand.", e: "He gave a <b>coherent</b> explanation of what happened.", s: "logical · consistent" },
+    { w: "Compelling", p: "adjective", m: "Very convincing or interesting.", e: "She made a <b>compelling</b> case for improving the process.", s: "convincing · persuasive" },
+    { w: "Cautious", p: "adjective", m: "Careful to avoid danger, mistakes, or unnecessary risk.", e: "We should be <b>cautious</b> before changing production.", s: "careful · wary" },
+    { w: "Foster", p: "verb", m: "To encourage the development of something.", e: "Good leaders <b>foster</b> collaboration within teams.", s: "encourage · promote" },
+    { w: "Obsolete", p: "adjective", m: "No longer useful because something newer replaced it.", e: "The company replaced the <b>obsolete</b> software.", s: "outdated · antiquated" }
+  ],
+  [
+    { w: "Nuanced", p: "adjective", m: "Having subtle differences or distinctions; not black-and-white.", e: "Her feedback was <b>nuanced</b> and considered both sides.", s: "subtle · refined" },
+    { w: "Robust", p: "adjective", m: "Strong, healthy, and able to withstand stress or variation.", e: "We need a <b>robust</b> process that works under pressure.", s: "sturdy · resilient" },
+    { w: "Tangible", p: "adjective", m: "Clear and definite; real enough to be noticed or measured.", e: "The team delivered <b>tangible</b> results within a month.", s: "concrete · measurable" },
+    { w: "Empathy", p: "noun", m: "The ability to understand and share another person's feelings.", e: "Good support requires <b>empathy</b> as much as technical skill.", s: "compassion · understanding" },
+    { w: "Iterate", p: "verb", m: "To repeat a process, improving a little each time.", e: "We will <b>iterate</b> on the design based on user feedback.", s: "refine · improve" }
+  ],
+  [
+    { w: "Credible", p: "adjective", m: "Believable and trustworthy.", e: "She presented a <b>credible</b> plan backed by data.", s: "believable · reliable" },
+    { w: "Frugal", p: "adjective", m: "Careful with money or resources; not wasteful.", e: "A <b>frugal</b> approach helped the startup last longer.", s: "thrifty · economical" },
+    { w: "Lucid", p: "adjective", m: "Expressed clearly; easy to understand.", e: "His <b>lucid</b> summary saved the team hours of confusion.", s: "clear · intelligible" },
+    { w: "Mitigate", p: "verb", m: "To make something less severe or harmful.", e: "We added checks to <b>mitigate</b> the risk of outages.", s: "reduce · lessen" },
+    { w: "Scrutinize", p: "verb", m: "To examine something carefully and in detail.", e: "Legal teams <b>scrutinize</b> every clause in the contract.", s: "inspect · examine" }
+  ],
+  [
+    { w: "Adept", p: "adjective", m: "Very skilled or proficient at something.", e: "She is <b>adept</b> at turning feedback into clear action items.", s: "skilled · proficient" },
+    { w: "Candid", p: "adjective", m: "Honest and straightforward in speech.", e: "I appreciate your <b>candid</b> feedback on the proposal.", s: "frank · honest" },
+    { w: "Deft", p: "adjective", m: "Skillful and quick in movement or action.", e: "He made a <b>deft</b> change that fixed the bug without side effects.", s: "skillful · agile" },
+    { w: "Galvanize", p: "verb", m: "To shock or excite someone into taking action.", e: "The deadline helped <b>galvanize</b> the team into focus.", s: "motivate · spur" },
+    { w: "Pivotal", p: "adjective", m: "Of crucial importance in relation to the development of something.", e: "That decision was <b>pivotal</b> for the product's success.", s: "crucial · decisive" }
+  ],
+  [
+    { w: "Astute", p: "adjective", m: "Able to understand situations quickly and accurately; shrewd.", e: "An <b>astute</b> observer noticed the pattern early.", s: "shrewd · perceptive" },
+    { w: "Brevity", p: "noun", m: "Concise and exact use of words; shortness.", e: "The memo's <b>brevity</b> made it easy to act on.", s: "conciseness · shortness" },
+    { w: "Discern", p: "verb", m: "To recognize or find out something with difficulty or care.", e: "It took time to <b>discern</b> the real cause of the delay.", s: "detect · perceive" },
+    { w: "Eloquent", p: "adjective", m: "Fluent and persuasive in speaking or writing.", e: "Her <b>eloquent</b> closing remarks stayed with the audience.", s: "articulate · expressive" },
+    { w: "Novel", p: "adjective", m: "New and unusual; original.", e: "They tried a <b>novel</b> approach that competitors had not used.", s: "original · innovative" }
+  ],
+  [
+    { w: "Bolster", p: "verb", m: "To support or strengthen.", e: "More training will <b>bolster</b> the team's confidence.", s: "strengthen · support" },
+    { w: "Candidly", p: "adverb", m: "In an honest and straightforward way.", e: "Candidly, the first version needed significant rework.", s: "frankly · honestly" },
+    { w: "Ephemeral", p: "adjective", m: "Lasting for a very short time.", e: "Trends on social media are often <b>ephemeral</b>.", s: "fleeting · brief" },
+    { w: "Impetus", p: "noun", m: "The force or energy that makes something happen or move forward.", e: "Customer complaints gave us the <b>impetus</b> to redesign onboarding.", s: "momentum · stimulus" },
+    { w: "Tacit", p: "adjective", m: "Understood or implied without being stated.", e: "There was a <b>tacit</b> agreement to keep the discussion private.", s: "implied · unspoken" }
+  ],
+  [
+    { w: "Alleviate", p: "verb", m: "To make suffering, a problem, or a burden less severe.", e: "Clear documentation can <b>alleviate</b> support load.", s: "ease · relieve" },
+    { w: "Concur", p: "verb", m: "To agree with someone or something.", e: "I <b>concur</b> with the recommendation to delay the launch.", s: "agree · assent" },
+    { w: "Imminent", p: "adjective", m: "About to happen very soon.", e: "With the deadline <b>imminent</b>, priorities became clear.", s: "impending · approaching" },
+    { w: "Plausible", p: "adjective", m: "Seeming reasonable or probable.", e: "That is a <b>plausible</b> explanation for the spike in errors.", s: "credible · believable" },
+    { w: "Salient", p: "adjective", m: "Most noticeable or important.", e: "She highlighted the <b>salient</b> points in two minutes.", s: "prominent · key" }
+  ],
+  [
+    { w: "Ameliorate", p: "verb", m: "To make something bad or unsatisfactory better.", e: "Small process changes can <b>ameliorate</b> team burnout.", s: "improve · better" },
+    { w: "Candid", p: "adjective", m: "Truthful and straightforward; frank.", e: "A <b>candid</b> post-mortem helps the team learn faster.", s: "frank · open" },
+    { w: "Incessant", p: "adjective", m: "Continuing without pause; constant.", e: "The <b>incessant</b> notifications made deep work difficult.", s: "constant · unending" },
+    { w: "Perceptive", p: "adjective", m: "Having or showing sensitive insight.", e: "His <b>perceptive</b> questions uncovered the real issue.", s: "insightful · observant" },
+    { w: "Tenacious", p: "adjective", m: "Persistent and determined; not giving up easily.", e: "She was <b>tenacious</b> in debugging the intermittent failure.", s: "persistent · determined" }
+  ]
+];
+
+/* ---------- Date helpers ---------- */
+function localISODate(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
+
+function key() {
+  return localISODate();
+}
+
+function dayIndex() {
+  const start = new Date(2026, 0, 1);
+  const now = new Date();
+  const startUTC = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const nowUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((nowUTC - startUTC) / 86400000);
+}
+
+/* ---------- Storage layer (local + Firebase) ---------- */
+function lsGet(k, fallback) {
+  try {
+    const v = localStorage.getItem(k);
+    return v === null ? fallback : JSON.parse(v);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function lsSet(k, v) {
+  localStorage.setItem(k, JSON.stringify(v));
+}
+
+async function cloudGet(path, fallback) {
+  if (!db || !currentUser) return fallback;
+  try {
+    const snap = await db.doc("users/" + currentUser.uid + "/" + path).get();
+    return snap.exists ? snap.data().value : fallback;
+  } catch (e) {
+    console.warn("cloudGet", e);
+    return fallback;
+  }
+}
+
+async function cloudSet(path, value) {
+  if (!db || !currentUser) return;
+  try {
+    await db.doc("users/" + currentUser.uid + "/" + path).set({
+      value: value,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setSyncStatus("Synced ✓");
+  } catch (e) {
+    console.warn("cloudSet", e);
+    setSyncStatus("Sync failed (using local)");
+  }
+}
+
+function setSyncStatus(msg) {
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = msg || "";
+}
+
+/* High-level data helpers */
+async function getDone() {
+  const local = lsGet("vf_done_" + key(), []);
+  if (currentUser) {
+    const cloud = await cloudGet("days/" + key() + "/done", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function saveDone(arr) {
+  lsSet("vf_done_" + key(), arr);
+  await cloudSet("days/" + key() + "/done", arr);
+}
+
+async function getBest() {
+  const local = +(localStorage.getItem("vf_best") || 0);
+  if (currentUser) {
+    const cloud = await cloudGet("meta/best", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function setBest(n) {
+  localStorage.setItem("vf_best", String(n));
+  await cloudSet("meta/best", n);
+}
+
+async function getSentence() {
+  const local = localStorage.getItem("vf_sentence_" + key()) || "";
+  if (currentUser) {
+    const cloud = await cloudGet("days/" + key() + "/sentence", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function saveSentenceCloud(v) {
+  localStorage.setItem("vf_sentence_" + key(), v);
+  await cloudSet("days/" + key() + "/sentence", v);
+}
+
+async function getSetOffset() {
+  const local = lsGet("vf_offset_" + key(), 0);
+  if (currentUser) {
+    const cloud = await cloudGet("days/" + key() + "/offset", null);
+    if (cloud !== null) return cloud;
+  }
+  return local;
+}
+
+async function saveSetOffset(n) {
+  lsSet("vf_offset_" + key(), n);
+  await cloudSet("days/" + key() + "/offset", n);
+}
+
+async function words() {
+  const base = ((dayIndex() % SETS.length) + SETS.length) % SETS.length;
+  const offset = await getSetOffset();
+  const i = (base + offset) % SETS.length;
+  return SETS[i];
+}
+
+/* ---------- Auth ---------- */
+function updateAuthUI() {
+  const banner = document.getElementById("authBanner");
+  const chip = document.getElementById("userChip");
+  const btn = document.getElementById("authBtn");
+  const label = document.getElementById("authBtnLabel");
+
+  if (!FIREBASE_READY) {
+    banner.classList.remove("show");
+    btn.style.display = "none";
+    return;
+  }
+
+  if (currentUser) {
+    banner.classList.remove("show");
+    chip.classList.add("show");
+    const avatar = document.getElementById("userAvatar");
+    if (currentUser.photoURL) {
+      avatar.src = currentUser.photoURL;
+      avatar.style.display = "block";
+    } else {
+      avatar.style.display = "none";
+    }
+    document.getElementById("userName").textContent =
+      currentUser.displayName || currentUser.email || "Signed in";
+    label.textContent = "Sign out";
+    btn.classList.remove("google");
+    setSyncStatus("Signed in · progress syncs to your account");
+  } else {
+    banner.classList.add("show");
+    chip.classList.remove("show");
+    label.textContent = "Sign in";
+    btn.classList.add("google");
+  }
+}
+
+function isMobile() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+}
+
+async function handleAuth() {
+  if (!auth) {
+    alert("Firebase is not configured yet.");
+    return;
+  }
+  if (currentUser) {
+    try {
+      await auth.signOut();
+      setSyncStatus("");
+    } catch (e) {
+      alert("Sign out failed: " + e.message);
+    }
+    return;
+  }
+
+  setSyncStatus("Opening Google…");
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.addScope("profile");
+  provider.addScope("email");
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  // iPhone Safari + GitHub Pages: redirect sign-in often fails (storage blocked).
+  // Always try popup first. Allow the popup if Safari asks.
+  try {
+    const result = await auth.signInWithPopup(provider);
+    if (result && result.user) {
+      currentUser = result.user;
+      updateAuthUI();
+      setSyncStatus("Signed in ✓");
+      await render();
+    }
+  } catch (e) {
+    console.warn("Auth error", e);
+    setSyncStatus("");
+    if (e.code === "auth/popup-closed-by-user") {
+      setSyncStatus("Sign-in cancelled");
+      return;
+    }
+    if (e.code === "auth/popup-blocked") {
+      alert(
+        "Safari blocked the sign-in window.\n\n" +
+        "On iPhone: Settings → Safari → turn OFF \"Block Pop-ups\", then try again.\n\n" +
+        "Or open this site on a computer — sign-in works more reliably there."
+      );
+      return;
+    }
+    // Last resort redirect (often broken on iOS + GitHub Pages)
+    try {
+      sessionStorage.setItem("vf_auth_pending", "1");
+      setSyncStatus("Trying full-page sign-in…");
+      await auth.signInWithRedirect(provider);
+    } catch (e2) {
+      alert("Sign-in failed: " + (e2.message || e.message || e.code));
+    }
+  }
+}
+
+async function finishAuthLoad() {
+  if (!auth) {
+    updateAuthUI();
+    await render();
+    return;
+  }
+
+  // Important: process redirect result BEFORE relying on currentUser
+  try {
+    const pending = sessionStorage.getItem("vf_auth_pending");
+    if (pending) setSyncStatus("Finishing sign-in…");
+    const result = await auth.getRedirectResult();
+    try { sessionStorage.removeItem("vf_auth_pending"); } catch (e) {}
+    if (result && result.user) {
+      currentUser = result.user;
+      setSyncStatus("Signed in ✓");
+    }
+  } catch (e) {
+    console.warn("Redirect result error", e);
+    try { sessionStorage.removeItem("vf_auth_pending"); } catch (err) {}
+    if (e && e.code && e.code !== "auth/redirect-cancelled-by-user") {
+      setSyncStatus("Sign-in error — try again");
+      console.error(e);
+    }
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    currentUser = user;
+    updateAuthUI();
+    if (user) {
+      setSyncStatus("Syncing…");
+      try {
+        const localDone = lsGet("vf_done_" + key(), []);
+        if (localDone.length) {
+          const cloudDone = await cloudGet("days/" + key() + "/done", null);
+          if (cloudDone === null) await cloudSet("days/" + key() + "/done", localDone);
+        }
+      } catch (e) {
+        console.warn("merge local failed", e);
+      }
+      await render();
+      setSyncStatus("Synced ✓");
+    } else {
+      setSyncStatus("");
+      await render();
+    }
+  });
+}
+
+finishAuthLoad();
+
+/* ---------- Theme ---------- */
+function applyTheme(dark) {
+  document.documentElement.classList.toggle("dark", dark);
+  const btn = document.getElementById("themeBtn");
+  if (btn) btn.textContent = dark ? "☼" : "☾";
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", dark ? "#1a1d27" : "#5b52f0");
+}
+
+function toggleTheme() {
+  const next = !document.documentElement.classList.contains("dark");
+  localStorage.setItem("vf_theme", next ? "dark" : "light");
+  applyTheme(next);
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem("vf_theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(saved === "dark" || (!saved && prefersDark));
+})();
+
+/* ---------- Core render ---------- */
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+async function render() {
+  const d = await getDone();
+  const ws = await words();
+  const pct = Math.round((d.length / 5) * 100);
+  const best = await getBest();
+
+  document.getElementById("date").textContent = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
+  document.getElementById("learnedCount").textContent = d.length;
+  document.getElementById("pct").textContent = pct + "%";
+  document.getElementById("bar").style.width = pct + "%";
+  document.getElementById("progressBar").setAttribute("aria-valuenow", pct);
+  document.getElementById("best").textContent = best;
+
+  document.getElementById("cards").innerHTML = ws
+    .map(function (x, i) {
+      return (
+        '<article class="card ' + (d.includes(i) ? "learned" : "") + '">' +
+        '<div class="num">WORD ' + (i + 1) + '<span class="check" aria-hidden="true">✓</span></div>' +
+        '<div class="wordrow">' +
+        '<div class="word">' + escapeHtml(x.w) + '</div>' +
+        '<button class="sound" type="button" onclick="speak(\'' + escapeAttr(x.w) + '\')" aria-label="Pronounce ' + escapeAttr(x.w) + '">🔊</button>' +
+        '</div>' +
+        '<div class="pos">' + escapeHtml(x.p) + '</div>' +
+        '<div class="meaning">' + escapeHtml(x.m) + '</div>' +
+        '<div class="example">“' + x.e + '”</div>' +
+        '<div class="syn">Similar: ' + escapeHtml(x.s) + '</div>' +
+        '<button class="learn" type="button" onclick="toggleDone(' + i + ')">' +
+        (d.includes(i) ? "✓ Learned" : "Mark as learned") +
+        "</button></article>"
+      );
+    })
+    .join("");
+
+  const saved = await getSentence();
+  const box = document.getElementById("saved");
+  if (saved) {
+    box.classList.add("show");
+    box.innerHTML = "<strong>Your sentence:</strong> " + escapeHtml(saved);
+  } else {
+    box.classList.remove("show");
+    box.textContent = "";
+  }
+
+  await renderStreak();
+}
+
+async function toggleDone(i) {
+  let d = await getDone();
+  d = d.includes(i) ? d.filter(function (v) { return v !== i; }) : d.concat([i]).sort(function (a, b) { return a - b; });
+  await saveDone(d);
+  await render();
+}
+
+function speak(t) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang = "en-US";
+  u.rate = 0.92;
+  speechSynthesis.speak(u);
+}
+
+async function saveSentence() {
+  const input = document.getElementById("sentence");
+  const v = input.value.trim();
+  if (!v) {
+    input.focus();
+    return;
+  }
+  await saveSentenceCloud(v);
+  input.value = "";
+  await render();
+}
+
+async function refreshWords() {
+  const current = await getSetOffset();
+  const next = (current + 1) % SETS.length;
+  await saveSetOffset(next);
+  // Reset today's learned marks when switching sets
+  await saveDone([]);
+  await render();
+  setSyncStatus("Loaded a new set of words");
+}
+
+function switchView(v) {
+  document.querySelectorAll(".view").forEach(function (x) { x.classList.remove("active"); });
+  document.getElementById(v + "View").classList.add("active");
+  document.querySelectorAll(".tab").forEach(function (x) {
+    x.classList.remove("active");
+    x.setAttribute("aria-selected", "false");
+  });
+  const tab = document.getElementById(v + "Tab");
+  tab.classList.add("active");
+  tab.setAttribute("aria-selected", "true");
+  if (v === "quiz") startQuiz();
+}
+
+async function renderStreak() {
+  let n = 0;
+  const d = new Date();
+  let check = new Date(d);
+  const todayDone = (await getDone()).length >= 5;
+  if (!todayDone) {
+    check.setDate(check.getDate() - 1);
+  }
+  // For cloud users we only look at local cache + today's cloud for speed
+  // Full historical cloud streak would need more reads; this is a practical compromise
+  while (true) {
+    const k = localISODate(check);
+    let x = lsGet("vf_done_" + k, []);
+    if (currentUser && k === key()) {
+      x = await getDone();
+    }
+    if (x.length < 5) break;
+    n++;
+    check.setDate(check.getDate() - 1);
+    if (n > 400) break;
+  }
+  document.getElementById("streak").textContent = n;
+}
+
+/* ---------- Quiz ---------- */
+let quizState = null;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a;
+}
+
+async function startQuiz() {
+  const order = shuffle([0, 1, 2, 3, 4]);
+  quizState = { q: 0, score: 0, order: order, answers: [] };
+  await renderQuizQ();
+}
+
+async function renderQuizQ() {
+  const box = document.getElementById("quizBox");
+  const q = quizState.q;
+  const score = quizState.score;
+  const order = quizState.order;
+  const answers = quizState.answers;
+  const ws = await words();
+
+  if (q >= 5) {
+    const best = Math.max(score, await getBest());
+    await setBest(best);
+    const msg = score === 5 ? "Perfect! 🎉" : score >= 3 ? "Great work! 💪" : "Keep practicing! 📚";
+    box.innerHTML =
+      '<div class="result">' +
+      '<div class="qmeta">Today\'s result</div>' +
+      '<div class="big">' + score + '/5</div>' +
+      "<h2>" + msg + "</h2>" +
+      '<p class="small">Best score so far: ' + best + "/5</p>" +
+      '<div class="review">' +
+      answers.map(function (ok) { return '<div class="dot ' + (ok ? "ok" : "bad") + '"></div>'; }).join("") +
+      "</div>" +
+      '<div class="result-actions">' +
+      '<button class="primary" type="button" onclick="startQuiz()">Retake quiz</button>' +
+      '<button class="btn-ghost" type="button" onclick="switchView(\'learn\')">Back to words</button>' +
+      "</div></div>";
+    await render();
+    return;
+  }
+
+  const idx = order[q];
+  const correct = ws[idx];
+  const pool = SETS.flat()
+    .filter(function (x) { return x.w !== correct.w; })
+    .sort(function () { return Math.random() - 0.5; })
+    .slice(0, 3);
+  const choices = shuffle([correct].concat(pool));
+
+  box.innerHTML =
+    '<div class="qmeta">Question ' + (q + 1) + " of 5</div>" +
+    '<div class="review">' +
+    [0, 1, 2, 3, 4]
+      .map(function (i) {
+        return (
+          '<div class="dot ' +
+          (i < answers.length ? (answers[i] ? "ok" : "bad") : "") +
+          '" id="dot' + i + '"></div>'
+        );
+      })
+      .join("") +
+    "</div>" +
+    '<div class="question">Which word means “' + escapeHtml(correct.m) + '”?</div>' +
+    '<div class="options">' +
+    choices
+      .map(function (c) {
+        return (
+          '<button class="option" type="button" data-word="' +
+          escapeAttr(c.w) +
+          '">' +
+          escapeHtml(c.w) +
+          "</button>"
+        );
+      })
+      .join("") +
+    "</div>" +
+    '<div class="feedback" id="feedback"></div>' +
+    '<button class="primary next" type="button" id="next">Next question →</button>';
+
+  box.querySelectorAll(".option").forEach(function (b) {
+    b.onclick = function () {
+      box.querySelectorAll(".option").forEach(function (x) { x.disabled = true; });
+      const ok = b.dataset.word === correct.w;
+      if (ok) {
+        b.classList.add("correct");
+        quizState.score++;
+      } else {
+        b.classList.add("wrong");
+        const right = box.querySelector('[data-word="' + escapeAttr(correct.w) + '"]');
+        if (right) right.classList.add("correct");
+      }
+      quizState.answers.push(ok);
+      const dot = document.getElementById("dot" + q);
+      if (dot) dot.classList.add(ok ? "ok" : "bad");
+      const fb = document.getElementById("feedback");
+      if (ok) {
+        fb.innerHTML =
+          "<strong>Correct.</strong> " +
+          escapeHtml(correct.w) +
+          " — " +
+          escapeHtml(correct.m);
+      } else {
+        fb.innerHTML =
+          "<strong>Not quite.</strong> The answer is <strong>" +
+          escapeHtml(correct.w) +
+          "</strong>: " +
+          escapeHtml(correct.m);
+      }
+      document.getElementById("next").style.display = "block";
+    };
+  });
+
+  document.getElementById("next").onclick = function () {
+    quizState.q++;
+    renderQuizQ();
+  };
+}
+
+document.getElementById("sentence").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") saveSentence();
+});
+
+// Auth + first render are started by finishAuthLoad() above.
+// Fallback if Firebase is not configured:
+if (!auth) {
+  updateAuthUI();
+  render();
+}
+</script>
+</body>
+</html>
